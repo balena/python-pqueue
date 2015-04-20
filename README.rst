@@ -5,16 +5,14 @@ pqueue
 **pqueue** is a simple persistent (disk-based) FIFO queue for Python.
 
 **pqueue** goals are speed and simplicity. The development was initially based
-on the `Queuelib <http://github.com/scrapy/queuelib>` code.
+on the `Queuelib` code.
 
-============
 Requirements
 ============
 
 * Python 2.7 or Python 3.3
 * no external libraries requirements
 
-============
 Installation
 ============
 
@@ -34,7 +32,6 @@ following (as root):
 
     # python setup.py install
 
-==========
 How to use
 ==========
 
@@ -71,7 +68,7 @@ should be stored per file. The same 'maxsize' parameter available on the
 system wise 'Queue' has been maintained.
 
 In other words, it works exactly as Python's Queue, with the difference any
-abrupt interruption is `ACID-guaranteed <http://en.wikipedia.org/wiki/ACID>`:
+abrupt interruption is `ACID-guaranteed`:
 
     q = Queue()
 
@@ -93,7 +90,6 @@ abrupt interruption is `ACID-guaranteed <http://en.wikipedia.org/wiki/ACID>`:
 
 Note that pqueue *is not intended to used by multiple processes*.
 
-=====
 Tests
 =====
 
@@ -121,10 +117,17 @@ The output should be something like the following::
     
     OK
 
-=======
 License
 =======
 
 This software is licensed under the BSD License. See the LICENSE file in the
 top distribution directory for the full license text.
 
+Versioning
+==========
+
+This software follows `Semantic Versioning`_
+
+.. _Queuelib: http://github.com/scrapy/queuelib
+.. _ACID-guaranteed: http://en.wikipedia.org/wiki/ACID
+.. _Semantic Versioning: http://semver.org/
