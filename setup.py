@@ -9,6 +9,7 @@ setup(
     description=(
         'A single process, persistent multi-producer, multi-consumer queue.'
     ),
+    long_description=open('README.rst').read(),
     author='G. B. Versiani',
     author_email='guibv@yahoo.com',
     maintainer='G. B. Versiani',
@@ -22,7 +23,10 @@ setup(
         'Operating System :: OS Independent',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
         'Topic :: Software Development :: Libraries'
     ],
     test_suite = 'runtests.runtests',

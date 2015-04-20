@@ -1,18 +1,25 @@
-# pqueue
+======
+pqueue
+======
 
-`pqueue` is a simple persistent (disk-based) FIFO queue for Python.
+**pqueue** is a simple persistent (disk-based) FIFO queue for Python.
 
-`pqueue` goals are speed and simplicity. The development was initially based on
-the `pqueue` code.
+**pqueue** goals are speed and simplicity. The development was initially based
+on the `Queuelib <http://github.com/scrapy/queuelib>` code.
 
-# Requirements
+============
+Requirements
+============
 
 * Python 2.7 or Python 3.3
 * no external libraries requirements
 
-# Installation
+============
+Installation
+============
 
-You can install `pqueue` either via Python Package Index (PyPI) or from source.
+You can install **pqueue** either via Python Package Index (PyPI) or from
+source.
 
 To install using pip:
 
@@ -27,9 +34,11 @@ following (as root):
 
     # python setup.py install
 
-# How to use
+==========
+How to use
+==========
 
-`pqueue` provides a single FIFO queue implementation.
+**pqueue** provides a single FIFO queue implementation.
 
 Here is an example usage of the FIFO queue:
 
@@ -55,16 +64,41 @@ Here is an example usage of the FIFO queue:
         raise Empty
     Queue.Empty
     
-The Queue object is identical to Python's `Queue` module (`queue` in Python
-3.x), with the difference that it requires a parameter `path` indicating where
-to persist the queue data and `chunksize` indicating how many enqueued items
-should be stored per file. The same `maxisize` parameter available on the
-system wise `Queue` has been maintained.
+The Queue object is identical to Python's 'Queue' module (or 'queue' in Python
+3.x), with the difference that it requires a parameter 'path' indicating where
+to persist the queue data and 'chunksize' indicating how many enqueued items
+should be stored per file. The same 'maxsize' parameter available on the
+system wise 'Queue' has been maintained.
 
-# Tests
+In other words, it works exactly as Python's Queue, with the difference any
+abrupt interruption is `ACID-guaranteed <http://en.wikipedia.org/wiki/ACID>`:
 
-Tests are located in `pqueue/tests` directory. They can be run using
-Python's default `unittest` module with the following command:
+    q = Queue()
+
+    def worker():
+        while True:
+            item = q.get()
+            do_work(item)
+            q.task_done()
+
+    for i in range(num_worker_threads):
+         t = Thread(target=worker)
+         t.daemon = True
+         t.start()
+
+    for item in source():
+        q.put(item)
+
+    q.join()       # block until all tasks are done
+
+Note that pqueue *is not intended to used by multiple processes*.
+
+=====
+Tests
+=====
+
+Tests are located in **pqueue/tests** directory. They can be run using
+Python's default **unittest** module with the following command:
 
     ./runtests.py
 
@@ -87,7 +121,9 @@ The output should be something like the following::
     
     OK
 
-# License
+=======
+License
+=======
 
 This software is licensed under the BSD License. See the LICENSE file in the
 top distribution directory for the full license text.
