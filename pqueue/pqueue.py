@@ -6,7 +6,12 @@ import struct
 import tempfile
 import fcntl
 from contextlib import closing
-from Queue import Queue as SyncQ
+
+import sys
+if sys.version_info < (3, 0):
+    from Queue import Queue as SyncQ
+else:
+    from queue import Queue as SyncQ
 
 class WriteBatch(object):
     def __init__(self, qfile, info):
