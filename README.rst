@@ -5,7 +5,7 @@ pqueue
 **pqueue** is a simple persistent (disk-based) FIFO queue for Python.
 
 **pqueue** goals are speed and simplicity. The development was initially based
-on the `Queuelib` code.
+on the `Queuelib`_ code.
 
 Requirements
 ============
@@ -68,7 +68,7 @@ should be stored per file. The same 'maxsize' parameter available on the
 system wise 'Queue' has been maintained.
 
 In other words, it works exactly as Python's Queue, with the difference any
-abrupt interruption is `ACID-guaranteed`:
+abrupt interruption is `ACID-guaranteed`_:
 
     q = Queue()
 
