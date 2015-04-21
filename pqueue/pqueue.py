@@ -13,38 +13,6 @@ if sys.version_info < (3, 0):
 else:
     from queue import Queue as SyncQ
 
-class WriteBatch(object):
-    def __init__(self, qfile, info):
-        self.qfile = qfile
-        self.info = info
-        self.fd = open(qfile, 'ab')
-
-    def write(self, string):
-        self.fd.write(string)
-
-    def item_done(self):
-        hnum, hpos, _ = self.info['head']
-        hpos += 1
-        if hpos == self.info['chunksize']:
-            hpos = 0
-            hnum += 1
-        self.info['size'] += 1
-        hoffset = self.fd.tell()
-        self.info['head'] = [hnum, hpos, hoffset]
-
-    def close(self):
-        self.fd.close()
-
-class Lock(object):
-    def __init__(self, lockfile):
-        self.lockfile = lockfile
-        self.fd = open(lockfile, 'w')
-        fcntl.lockf(self.fd.fileno(), fcntl.LOCK_EX)
-
-    def close(self):
-        fcntl.lockf(self.fd.fileno(), fcntl.LOCK_UN)
-        self.fd.close()
-
 class Queue(SyncQ):
 
     """Create a persistent queue object on a given path.
@@ -58,59 +26,72 @@ class Queue(SyncQ):
         self.path = path
         self.chunksize = chunksize
         SyncQ.__init__(self, maxsize)
+        self.info = self._loadinfo()
+        # truncate head case it contains garbage
+        hnum, hcnt, hoffset = self.info['head']
+        headfn = self._qfile(hnum)
+        if os.path.exists(headfn):
+            if hoffset < os.path.getsize(headfn):
+                os.truncate(headfn, hoffset)
+        # let the head file open
+        self.headf = self._openchunk(hnum, 'ab+')
+        # let the tail file open
+        tnum, _, toffset = self.info['tail']
+        self.tailf = self._openchunk(tnum)
+        self.tailf.seek(toffset)
+        # update unfinished tasks with the current number of enqueued tasks
+        self.unfinished_tasks = self.info['size']
+        # optimize info file updates
+        self.update_info = True
 
     def _init(self, maxsize):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-            open(self._lockfile(), 'w').close()
-        # trucate head case it contains garbage
-        info = self._loadinfo()
-        hnum, hcnt, hoffset = info['head']
-        head = self._qfile(hnum)
-        if os.path.exists(head):
-            if hoffset < os.path.getsize(head):
-                os.truncate(head, hoffset)
 
     def _qsize(self, len=len):
-        with closing(Lock(self._lockfile())):
-            return self._loadinfo()['size']
+        return self.info['size']
 
     def _put(self, item):
-        with closing(Lock(self._lockfile())):
-            info = self._loadinfo()
-            hnum, hpos, _ = info['head']
-            with closing(WriteBatch(self._qfile(hnum), info)) as headf:
-                pickle.dump(item, headf)
-                headf.item_done()
-                self._saveinfo(headf.info)
+        pickle.dump(item, self.headf)
+        self.headf.flush()
+        hnum, hpos, _ = self.info['head']
+        hpos += 1
+        if hpos == self.info['chunksize']:
+            hpos = 0
+            hnum += 1
+            self.headf.close()
+            self.headf = self._openchunk(hnum, 'ab+')
+        self.info['size'] += 1
+        self.info['head'] = [hnum, hpos, self.headf.tell()]
+        self._saveinfo()
 
     def _get(self):
-        with closing(Lock(self._lockfile())):
-            info = self._loadinfo()
-            tnum, tcnt, toffset = info['tail']
-            hnum, hcnt, _ = info['head']
-            if [tnum, tcnt] >= [hnum, hcnt]:
-                return None
-            with self._opentail(info) as tailf:
-                data = pickle.load(tailf)
-                toffset = tailf.tell()
-            tcnt += 1
-            if tcnt == info['chunksize'] and tnum <= hnum:
-                tcnt = toffset = 0
-                tnum += 1
-                os.remove(tailf.name)
-            info['size'] -= 1
-            info['tail'] = [tnum, tcnt, toffset]
-            self._saveinfo(info)
+        tnum, tcnt, toffset = self.info['tail']
+        hnum, hcnt, _ = self.info['head']
+        if [tnum, tcnt] >= [hnum, hcnt]:
+            return None
+        data = pickle.load(self.tailf)
+        toffset = self.tailf.tell()
+        tcnt += 1
+        if tcnt == self.info['chunksize'] and tnum <= hnum:
+            tcnt = toffset = 0
+            tnum += 1
+            self.tailf.close()
+            os.remove(self.tailf.name)
+            self.tailf = self._openchunk(tnum)
+        self.info['size'] -= 1
+        self.info['tail'] = [tnum, tcnt, toffset]
+        self.update_info = True
         return data
 
-    def _openchunk(self, number):
-        return open(self._qfile(number), 'rb')
+    def task_done(self):
+        SyncQ.task_done(self)
+        if self.update_info:
+            self._saveinfo()
+            self.update_info = False
 
-    def _opentail(self, info):
-        tailf = self._openchunk(info['tail'][0])
-        tailf.seek(info['tail'][2])
-        return tailf
+    def _openchunk(self, number, mode='r'):
+        return open(self._qfile(number), mode)
 
     def _loadinfo(self):
         infopath = self._infopath()
@@ -126,18 +107,15 @@ class Queue(SyncQ):
             }
         return info
 
-    def _saveinfo(self, info):
+    def _saveinfo(self):
         tmpfd, tmpfn = tempfile.mkstemp()
-        os.write(tmpfd, pickle.dumps(info))
+        os.write(tmpfd, pickle.dumps(self.info))
         os.close(tmpfd)
         # POSIX requires that 'rename' is an atomic operation
         os.rename(tmpfn, self._infopath())
 
     def _qfile(self, number):
         return os.path.join(self.path, 'q%05d' % number)
-
-    def _lockfile(self):
-        return os.path.join(self.path, '.lock')
 
     def _infopath(self):
         return os.path.join(self.path, 'info')

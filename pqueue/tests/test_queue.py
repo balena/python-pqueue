@@ -27,6 +27,7 @@ class TestSuite_PersistenceTest(unittest.TestCase):
         q = Queue(self.path)
         self.assertEqual(1, q.qsize())
         self.assertEqual('var1', q.get())
+        q.task_done()
 
     def test_OpenCloseOneHundred(self):
         """Write 1000 items, close, reopen checking if all items are there"""
@@ -38,7 +39,9 @@ class TestSuite_PersistenceTest(unittest.TestCase):
         q = Queue(self.path)
         self.assertEqual(1000, q.qsize())
         for i in range(1000):
-            self.assertEqual('var%d' % i, q.get())
+            data = q.get()
+            self.assertEqual('var%d' % i, data)
+            q.task_done()
         with self.assertRaises(Empty):
             q.get_nowait()
 
@@ -55,6 +58,7 @@ class TestSuite_PersistenceTest(unittest.TestCase):
         self.assertEqual(100, q.qsize())
         for i in range(100):
             self.assertEqual('var%d' % i, q.get())
+            q.task_done()
         with self.assertRaises(Empty):
             q.get_nowait()
 
@@ -67,11 +71,12 @@ class TestSuite_PersistenceTest(unittest.TestCase):
             if read:
                 try:
                     n = q.qsize()
-                    data = q.get_nowait()
+                    q.get_nowait()
+                    q.task_done()
                 except Empty:
                     self.assertEqual(0, n)
             else:
-                q.put('var%d', random.getrandbits(16))
+                q.put('var%d' % random.getrandbits(16))
 
     def test_MultiThreaded(self):
         """Create consumer and producer threads, check parallelism"""
@@ -84,6 +89,7 @@ class TestSuite_PersistenceTest(unittest.TestCase):
         def consumer():
             for i in range(1000):
                 q.get()
+                q.task_done()
 
         c = Thread(target = consumer)
         c.start()
