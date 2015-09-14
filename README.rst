@@ -102,12 +102,12 @@ pulled data goes on 'tail'.
 An 'info' file is pickled in the 'path', having the following 'dict':
 
 * 'head': a list of three integers, an index of the 'head' file, the number of
-elements written, and the file position of the last write.
+  elements written, and the file position of the last write.
 * 'tail': a list of three integers, an index of the 'tail' file, the number of
-elements read, and the file position of the last read.
+  elements read, and the file position of the last read.
 * 'size': number of elements in the queue.
 * 'chunksize': number of elements that should be stored in each disk queue
-file.
+  file.
 
 Both read and write operations depend on sequential transactions on disk. In
 order to accomplish ACID requirements, these modifications are protected by the
@@ -127,9 +127,9 @@ file. This was designed this way as POSIX 'rename' is guaranteed to be atomic.
 In case of abrupt interruptions, one of the following conditions may happen:
 
 * A partial write of the last pushed element may occur and in this case only
-this last element pushed will be discarded.
+  this last element pushed will be discarded.
 * An element pulled from the queue may be processing, and in this case a second
-run will consume same element again.
+  run will consume same element again.
 
 Tests
 =====

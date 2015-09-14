@@ -17,7 +17,7 @@ setup(
     license='BSD',
     packages=find_packages(),
     platforms=["all"],
-    url='http://github.com/balena/pqueue',
+    url='http://github.com/balena/python-pqueue',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Operating System :: OS Independent',
