@@ -13,6 +13,10 @@ if sys.version_info < (3, 0):
 else:
     from queue import Queue as SyncQ
 
+def _truncate(fn, length):
+    with open(fn, 'a') as fd:
+        os.ftruncate(fd, length)
+
 class Queue(SyncQ):
 
     """Create a persistent queue object on a given path.
@@ -32,7 +36,7 @@ class Queue(SyncQ):
         headfn = self._qfile(hnum)
         if os.path.exists(headfn):
             if hoffset < os.path.getsize(headfn):
-                os.truncate(headfn, hoffset)
+                _truncate(headfn, hoffset)
         # let the head file open
         self.headf = self._openchunk(hnum, 'ab+')
         # let the tail file open

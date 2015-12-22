@@ -100,3 +100,21 @@ class TestSuite_PersistenceTest(unittest.TestCase):
         with self.assertRaises(Empty):
             q.get_nowait()
 
+    def test_GarbageOnHead(self):
+	"""Adds garbage to the queue head and let the internal integrity checks
+        fix it"""
+
+        q = Queue(self.path)
+        q.put('var1')
+        del q
+
+        with open(os.path.join(self.path, 'q00001'), 'a') as fd:
+            fd.write('garbage')
+
+        q = Queue(self.path)
+        q.put('var2')
+
+        self.assertEqual(2, q.qsize())
+        self.assertEqual('var1', q.get())
+        q.task_done()
+
