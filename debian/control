@@ -1,0 +1,18 @@
+Source: python-pqueue
+Section: python
+Priority: optional
+Maintainer: G. B. Versiani <guibv@yahoo.com>
+Build-Depends: python-all (>= 2.6.6-3), debhelper (>= 7)
+Standards-Version: 3.9.2
+Homepage: http://github.com/balena/python-pqueue
+Vcs-Git: http://github.com/balena/python-pqueue.git
+X-Python-Version: >= 2.7
+
+Package: python-pqueue
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: A synchronized persistent Queue class for Python
+ pqueue is a simple persistent (disk-based) FIFO queue for Python.
+ .
+ pqueue goals are speed and simplicity. The development was initially based on
+ the Queuelib code.
