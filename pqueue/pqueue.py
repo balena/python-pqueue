@@ -1,34 +1,43 @@
 """A single process, persistent multi-producer, multi-consumer queue."""
 
-import pickle
 import os
-import struct
-import tempfile
-import fcntl
-from contextlib import closing
-
+import pickle
 import sys
+import tempfile
+
 if sys.version_info < (3, 0):
     from Queue import Queue as SyncQ
 else:
     from queue import Queue as SyncQ
 
+
 def _truncate(fn, length):
     with open(fn, 'a') as fd:
         os.ftruncate(fd, length)
 
+
 class Queue(SyncQ):
+    def __init__(self, path, maxsize=0, chunksize=100, tempdir=None):
+        """Create a persistent queue object on a given path.
 
-    """Create a persistent queue object on a given path.
+        The argument path indicates a directory where enqueued data should be
+        persisted. If the directory doesn't exist, one will be created. If maxsize
+        is <= 0, the queue size is infinite. The optional argument chunksize
+        indicates how many entries should exist in each chunk file on disk.
 
-    The argument path indicates a directory where enqueued data should be
-    persisted. If the directory doesn't exist, one will be created. If maxsize
-    is <= 0, the queue size is infinite. The optional argument chunksize
-    indicates how many entries should exist in each chunk file on disk.
-    """
-    def __init__(self, path, maxsize=0, chunksize=100):
+        The tempdir parameter indicates where temporary files should be stored.
+        The tempdir has to be located on the same disk as the enqueued data in
+        order to obtain atomic operations.
+        """
+
         self.path = path
         self.chunksize = chunksize
+        self.tempdir = tempdir
+        if self.tempdir:
+            if os.stat(self.path).st_dev != os.stat(self.tempdir).st_dev:
+                raise ValueError("tempdir has to be located "
+                                 "on same path filesystem")
+
         SyncQ.__init__(self, maxsize)
         self.info = self._loadinfo()
         # truncate head case it contains garbage
@@ -111,8 +120,14 @@ class Queue(SyncQ):
             }
         return info
 
+    def _gettempfile(self):
+        if self.tempdir:
+            return tempfile.mkstemp(dir=self.tempdir)
+        else:
+            return tempfile.mkstemp()
+
     def _saveinfo(self):
-        tmpfd, tmpfn = tempfile.mkstemp()
+        tmpfd, tmpfn = self._gettempfile()
         os.write(tmpfd, pickle.dumps(self.info))
         os.close(tmpfd)
         # POSIX requires that 'rename' is an atomic operation
@@ -123,4 +138,3 @@ class Queue(SyncQ):
 
     def _infopath(self):
         return os.path.join(self.path, 'info')
-

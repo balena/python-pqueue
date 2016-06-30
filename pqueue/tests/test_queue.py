@@ -1,16 +1,16 @@
 # coding=utf-8
 
-import unittest
-import tempfile
-import shutil
 import os
-import random
 import pickle
+import random
+import tempfile
+import unittest
 from threading import Thread
 
 from pqueue import Queue, Empty
 
-class TestSuite_PersistenceTest(unittest.TestCase):
+
+class PersistenceTest(unittest.TestCase):
     def setUp(self):
         self.path = tempfile.mkdtemp()
 
@@ -44,6 +44,9 @@ class TestSuite_PersistenceTest(unittest.TestCase):
             q.task_done()
         with self.assertRaises(Empty):
             q.get_nowait()
+        # assert adding another one still works
+        q.put('foobar')
+        data = q.get()
 
     def test_PartialWrite(self):
         """Test recovery from previous crash w/ partial write"""
@@ -66,17 +69,19 @@ class TestSuite_PersistenceTest(unittest.TestCase):
         """Test random read/write"""
 
         q = Queue(self.path)
+        n = 0
         for i in range(1000):
-            read = random.getrandbits(1)
-            if read:
-                try:
-                    n = q.qsize()
+            if random.random() < 0.5:
+                if n > 0:
                     q.get_nowait()
                     q.task_done()
-                except Empty:
-                    self.assertEqual(0, n)
+                    n -= 1
+                else:
+                    with self.assertRaises(Empty):
+                        q.get_nowait()
             else:
                 q.put('var%d' % random.getrandbits(16))
+                n += 1
 
     def test_MultiThreaded(self):
         """Create consumer and producer threads, check parallelism"""
@@ -101,8 +106,8 @@ class TestSuite_PersistenceTest(unittest.TestCase):
             q.get_nowait()
 
     def test_GarbageOnHead(self):
-	"""Adds garbage to the queue head and let the internal integrity checks
-        fix it"""
+        """Adds garbage to the queue head and let the internal integrity
+        checks fix it"""
 
         q = Queue(self.path)
         q.put('var1')
