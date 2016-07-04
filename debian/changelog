@@ -1,3 +1,10 @@
+python-pqueue (0.1.3) unstable; urgency=medium
+
+  * Added constructor parameter to use alternative directory instead of /tmp
+    for temporary files.
+
+ -- G. B. Versiani <guibv@yahoo.com>  Mon, 04 Jul 2016 08:39:51 -0300
+
 python-pqueue (0.1.2) unstable; urgency=medium
 
   * Initial release.

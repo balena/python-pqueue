@@ -1,6 +1,6 @@
 __author__ = 'G. B. Versiani'
 __license__ = 'BSD'
-__version__ = '0.1.2'
+__version__ = '0.1.3'
 
 import sys
 if sys.version_info < (3, 0):
