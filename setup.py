@@ -20,7 +20,7 @@ setup(
     url='http://github.com/balena/python-pqueue',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Operating System :: OS Independent',
+        'Operating System :: POSIX',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Programming Language :: Python :: 2',

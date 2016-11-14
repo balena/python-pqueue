@@ -44,7 +44,7 @@ Here is an example usage of the FIFO queue::
     >>> q.put(b'a')
     >>> q.put(b'b')
     >>> q.put(b'c')
-    >>> q.pop()
+    >>> q.get()
     b'a'
     >>> del q
     >>> q = Queue("tmpqueue")
