@@ -12,8 +12,9 @@ else:
 
 
 def _truncate(fn, length):
-    with open(fn, 'a') as fd:
-        os.ftruncate(fd, length)
+    fd = os.open(fn, os.O_RDWR)
+    os.ftruncate(fd, length)
+    os.close(fd)
 
 
 class Queue(SyncQ):
