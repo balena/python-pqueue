@@ -103,13 +103,13 @@ class Queue(SyncQ):
             self._saveinfo()
             self.update_info = False
 
-    def _openchunk(self, number, mode='r'):
+    def _openchunk(self, number, mode='rb'):
         return open(self._qfile(number), mode)
 
     def _loadinfo(self):
         infopath = self._infopath()
         if os.path.exists(infopath):
-            with open(infopath) as f:
+            with open(infopath, 'rb') as f:
                 info = pickle.load(f)
         else:
             info = {
