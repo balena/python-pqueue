@@ -19,16 +19,16 @@ Installation
 You can install **pqueue** either via Python Package Index (PyPI) or from
 source.
 
-To install using pip:
+To install using pip::
 
     $ pip install pqueue
 
-To install using easy_install:
+To install using easy_install::
 
     $ easy_install pqueue
 
 If you have downloaded a source tarball you can install it by running the
-following (as root):
+following (as root)::
 
     # python setup.py install
 
@@ -37,7 +37,7 @@ How to use
 
 **pqueue** provides a single FIFO queue implementation.
 
-Here is an example usage of the FIFO queue:
+Here is an example usage of the FIFO queue::
 
     >>> from pqueue import Queue
     >>> q = Queue("tmpqueue")
@@ -68,7 +68,7 @@ should be stored per file. The same 'maxsize' parameter available on the
 system wise 'Queue' has been maintained.
 
 In other words, it works exactly as Python's Queue, with the difference any
-abrupt interruption is `ACID-guaranteed`_:
+abrupt interruption is `ACID-guaranteed`_::
 
     q = Queue()
 
@@ -135,26 +135,28 @@ Tests
 =====
 
 Tests are located in **pqueue/tests** directory. They can be run using
-Python's default **unittest** module with the following command:
+Python's default **unittest** module with the following command::
 
     ./runtests.py
 
 The output should be something like the following::
 
     ./runtests.py
-    test_MultiThreaded (pqueue.tests.test_queue.TestSuite_PersistenceTest)
+    test_GarbageOnHead (pqueue.tests.test_queue.PersistenceTest)
+    Adds garbage to the queue head and let the internal integrity ... ok
+    test_MultiThreaded (pqueue.tests.test_queue.PersistenceTest)
     Create consumer and producer threads, check parallelism ... ok
-    test_OpenCloseOneHundred (pqueue.tests.test_queue.TestSuite_PersistenceTest)
+    test_OpenCloseOneHundred (pqueue.tests.test_queue.PersistenceTest)
     Write 1000 items, close, reopen checking if all items are there ... ok
-    test_OpenCloseSingle (pqueue.tests.test_queue.TestSuite_PersistenceTest)
+    test_OpenCloseSingle (pqueue.tests.test_queue.PersistenceTest)
     Write 1 item, close, reopen checking if same item is there ... ok
-    test_PartialWrite (pqueue.tests.test_queue.TestSuite_PersistenceTest)
+    test_PartialWrite (pqueue.tests.test_queue.PersistenceTest)
     Test recovery from previous crash w/ partial write ... ok
-    test_RandomReadWrite (pqueue.tests.test_queue.TestSuite_PersistenceTest)
+    test_RandomReadWrite (pqueue.tests.test_queue.PersistenceTest)
     Test random read/write ... ok
     
     ----------------------------------------------------------------------
-    Ran 5 tests in 4.615s
+    Ran 6 tests in 1.301s
     
     OK
 
