@@ -123,3 +123,19 @@ class PersistenceTest(unittest.TestCase):
         self.assertEqual('var1', q.get())
         q.task_done()
 
+    def test_ClearOldFile(self):
+        """put until reaching chunksize, then get without calling task_done"""
+        q = Queue(self.path, chunksize=10)
+        for i in range(15):
+            q.put('var1')
+
+        for i in range(11):
+            q.get()
+
+        q = Queue(self.path, chunksize=10)
+        self.assertEqual(q.qsize(), 15)
+
+        for i in range(11):
+            q.get()
+            q.task_done()
+        self.assertEqual(q.qsize(), 4)

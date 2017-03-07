@@ -91,7 +91,6 @@ class Queue(SyncQ):
             tcnt = toffset = 0
             tnum += 1
             self.tailf.close()
-            os.remove(self.tailf.name)
             self.tailf = self._openchunk(tnum)
         self.info['size'] -= 1
         self.info['tail'] = [tnum, tcnt, toffset]
@@ -133,6 +132,17 @@ class Queue(SyncQ):
         os.close(tmpfd)
         # POSIX requires that 'rename' is an atomic operation
         os.rename(tmpfn, self._infopath())
+        self._clear_old_file()
+
+    def _clear_old_file(self):
+        tnum, _, _ = self.info['tail']
+        while tnum >= 1:
+            tnum -= 1
+            path = self._qfile(tnum)
+            if os.path.exists(path):
+                os.remove(path)
+            else:
+                break
 
     def _qfile(self, number):
         return os.path.join(self.path, 'q%05d' % number)
