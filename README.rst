@@ -5,7 +5,7 @@ pqueue
 **pqueue** is a simple persistent (disk-based) FIFO queue for Python.
 
 **pqueue** goals are speed and simplicity. The development was initially based
-on the `Queuelib`_ code.
+on the `Queuelib`_ code. Entries are saved on disk using ``pickle``.
 
 Requirements
 ============
@@ -61,13 +61,13 @@ Here is an example usage of the FIFO queue::
         raise Empty
     Queue.Empty
     
-The Queue object is identical to Python's 'Queue' module (or 'queue' in Python
-3.x), with the difference that it requires a parameter 'path' indicating where
-to persist the queue data and 'chunksize' indicating how many enqueued items
-should be stored per file. The same 'maxsize' parameter available on the
-system wise 'Queue' has been maintained.
+The ``Queue`` object is identical to Python's ``Queue`` module (or ``queue`` in
+Python 3.x), with the difference that it requires a parameter ``path``
+indicating where to persist the queue data and ``chunksize`` indicating how
+many enqueued items should be stored per file. The same ``maxsize`` parameter
+available on the system wise ``Queue`` has been maintained.
 
-In other words, it works exactly as Python's Queue, with the difference any
+In other words, it works exactly as Python's ``Queue``, with the difference any
 abrupt interruption is `ACID-guaranteed`_::
 
     q = Queue()
@@ -88,25 +88,26 @@ abrupt interruption is `ACID-guaranteed`_::
 
     q.join()       # block until all tasks are done
 
-Note that pqueue *is not intended to used by multiple processes*.
+Note that pqueue *is not intended to be used by multiple processes*.
 
 How it works?
 =============
 
 Pushed data is serialized using pickle in sequence, on chunked files named as
-qNNNNN, with a maximum of 'chunksize' elements, all stored on the given 'path'.
+``qNNNNN``, with a maximum of ``chunksize`` elements, all stored on the given
+``path``.
 
-The queue is formed by a 'head' and a 'tail'. Pushed data goes on 'head',
-pulled data goes on 'tail'.
+The queue is formed by a ``head`` and a ``tail``. Pushed data goes on ``head``,
+pulled data goes on ``tail``.
 
-An 'info' file is pickled in the 'path', having the following 'dict':
+An ``info`` file is pickled in the ``path``, having the following ``dict``:
 
-* 'head': a list of three integers, an index of the 'head' file, the number of
-  elements written, and the file position of the last write.
-* 'tail': a list of three integers, an index of the 'tail' file, the number of
-  elements read, and the file position of the last read.
-* 'size': number of elements in the queue.
-* 'chunksize': number of elements that should be stored in each disk queue
+* ``head``: a list of three integers, an index of the ``head`` file, the number
+  of elements written, and the file position of the last write.
+* ``tail``: a list of three integers, an index of the ``tail`` file, the number
+  of elements read, and the file position of the last read.
+* ``size``: number of elements in the queue.
+* ``chunksize``: number of elements that should be stored in each disk queue
   file.
 
 Both read and write operations depend on sequential transactions on disk. In
@@ -117,12 +118,14 @@ If, for any reason, the application stops working in the middle of a head
 write, a second execution will remove any inconsistency by truncating the
 partial head write.
 
-On 'get', the 'info' file is not updated, only when you first call 'task_done',
-and only on the first time case you have to call it sequentially.
+On ``get``, the ``info`` file is not updated, only when you first call
+``task_done``, and only on the first time case you have to call it
+sequentially.
 
-The 'info' file is updated in the following way: a temporary file (using
-'mkstemp') is created with the new data and then moved over the previous 'info'
-file. This was designed this way as POSIX 'rename' is guaranteed to be atomic.
+The ``info`` file is updated in the following way: a temporary file (using
+'mkstemp') is created with the new data and then moved over the previous
+``info`` file. This was designed this way as POSIX 'rename' is guaranteed to be
+atomic.
 
 In case of abrupt interruptions, one of the following conditions may happen:
 
